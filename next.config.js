@@ -1,7 +1,14 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  compiler: {
-    emotion: true,
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "files.edgestore.dev",
+        port: "",
+        pathname: "/**",
+      },
+    ],
   },
 };
 

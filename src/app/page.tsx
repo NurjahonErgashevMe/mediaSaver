@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useEdgeStore } from "@/lib/edgestore";
-import { FC, useState } from "react";
+import { FC, useEffect, useState } from "react";
 import styles from "./page.module.css";
 import DownolandImage from "../../public/upload_icon.png";
 import Image from "next/image";
@@ -15,6 +15,7 @@ export default function Home() {
   const [progress, setProgress] = useState<number>(0);
   const [urls, setUrls] = useState<URLs>();
   const [file, setFile] = useState<File | null>(null);
+  const [disabled, setDisabled] = useState<boolean>(false);
   const { edgestore } = useEdgeStore();
   const URLsContent: FC = () => {
     if (!urls) {
@@ -23,15 +24,21 @@ export default function Home() {
 
     if (urls?.url && urls?.thumbnailUrl) {
       return (
-        <>
-          <Link href={urls.url}>URL</Link>
-          <Link href={urls.thumbnailUrl} target="_blank">
-            THUMBNAIL
-          </Link>
-        </>
+        <Link href={urls?.thumbnailUrl} target="_blank">
+          <Image alt={urls.url} src={urls?.url} width={300} height={300} />
+        </Link>
       );
     }
   };
+
+  useEffect(() => {
+    const handleDisabled = () => {
+      if (progress === 100) {
+        setDisabled(() => false);
+      }
+    };
+    return () => handleDisabled();
+  }, [progress]);
 
   return (
     <main className={styles.main}>
@@ -66,17 +73,21 @@ export default function Home() {
           <button
             className={styles.uploadButton}
             onClick={async () => {
-              if (file) {
-                const { url, thumbnailUrl } =
-                  await edgestore.myPublicImages.upload({
-                    file: file,
-                    onProgressChange: (progress) => {
-                      setProgress(() => progress);
-                    },
-                  });
-                setUrls({ url, thumbnailUrl });
+              if (!file) {
+                setDisabled(() => false);
+                return;
               }
+              const { url, thumbnailUrl } =
+                await edgestore.myPublicImages.upload({
+                  file: file,
+                  onProgressChange: (progress) => {
+                    setProgress(() => progress);
+                  },
+                });
+              setUrls({ url, thumbnailUrl });
+              setDisabled(() => true);
             }}
+            disabled={disabled}
           >
             upload
           </button>
