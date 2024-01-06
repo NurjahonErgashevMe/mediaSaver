@@ -1,95 +1,100 @@
-import Image from 'next/image'
-import styles from './page.module.css'
+"use client";
+import Link from "next/link";
+import { useEdgeStore } from "@/lib/edgestore";
+import { FC, useState } from "react";
+import styles from "./page.module.css";
+import DownolandImage from "../../public/upload_icon.png";
+import Image from "next/image";
+
+type URLs = {
+  url: string;
+  thumbnailUrl: string | null;
+};
 
 export default function Home() {
+  const [progress, setProgress] = useState<number>(0);
+  const [urls, setUrls] = useState<URLs>();
+  const [file, setFile] = useState<File | null>(null);
+  const { edgestore } = useEdgeStore();
+  const URLsContent: FC = () => {
+    if (!urls) {
+      return null;
+    }
+
+    if (urls?.url && urls?.thumbnailUrl) {
+      return (
+        <>
+          <Link href={urls.url}>URL</Link>
+          <Link href={urls.thumbnailUrl} target="_blank">
+            THUMBNAIL
+          </Link>
+        </>
+      );
+    }
+  };
+
   return (
     <main className={styles.main}>
-      <div className={styles.description}>
-        <p>
-          Get started by editing&nbsp;
-          <code className={styles.code}>src/app/page.tsx</code>
-        </p>
-        <div>
-          <a
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{' '}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className={styles.vercelLogo}
-              width={100}
-              height={24}
-              priority
+      <div className={styles.headerContent}>
+        <div className={styles.uploadContainer}>
+          <label className={styles.uploadLabel}>
+            <input
+              id="file"
+              type="file"
+              accept="image/**"
+              onChange={(e) => {
+                const file = e?.target?.files?.[0];
+                if (!file) {
+                  setFile(() => null);
+                  return;
+                }
+                setFile(() => file);
+              }}
+              hidden
             />
-          </a>
+            <div className={styles.uploadContent}>
+              <Image
+                src={DownolandImage}
+                width={100}
+                height={100}
+                alt="downoland"
+              />
+              <h2>{file ? "Selected" : "Select image"}</h2>
+            </div>
+          </label>
+
+          <button
+            className={styles.uploadButton}
+            onClick={async () => {
+              if (file) {
+                const { url, thumbnailUrl } =
+                  await edgestore.myPublicImages.upload({
+                    file: file,
+                    onProgressChange: (progress) => {
+                      setProgress(() => progress);
+                    },
+                  });
+                setUrls({ url, thumbnailUrl });
+              }
+            }}
+          >
+            upload
+          </button>
         </div>
       </div>
-
-      <div className={styles.center}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
+      {/* <div
+        style={{ width: "100%", border: "1px solid green", borderRadius: 5 }}
+      >
+        <div
+          style={{
+            width: `${progress}%`,
+            backgroundColor: "green",
+            height: 5,
+            transition: ".3s",
+          }}
         />
-      </div>
-
-      <div className={styles.grid}>
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Docs <span>-&gt;</span>
-          </h2>
-          <p>Find in-depth information about Next.js features and API.</p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Learn <span>-&gt;</span>
-          </h2>
-          <p>Learn about Next.js in an interactive course with&nbsp;quizzes!</p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Templates <span>-&gt;</span>
-          </h2>
-          <p>Explore starter templates for Next.js.</p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Deploy <span>-&gt;</span>
-          </h2>
-          <p>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
+        </div> */}
+      <URLsContent />
     </main>
-  )
+  );
 }
