@@ -15,7 +15,7 @@ export default function Home() {
   const [progress, setProgress] = useState<number>(0);
   const [urls, setUrls] = useState<URLs>();
   const [file, setFile] = useState<File | null>(null);
-  const [disabled, setDisabled] = useState<boolean>(false);
+  const [disabled, setDisabled] = useState<boolean>(true);
   const { edgestore } = useEdgeStore();
   const URLsContent: FC = () => {
     if (!urls) {
@@ -32,13 +32,12 @@ export default function Home() {
   };
 
   useEffect(() => {
-    const handleDisabled = () => {
-      if (progress === 100) {
-        setDisabled(() => false);
-      }
-    };
-    return () => handleDisabled();
-  }, [progress]);
+    console.log(progress);
+    if (progress === 100 || file) {
+      console.log(`disable false`);
+      setDisabled(() => false);
+    }
+  }, [progress, file]);
 
   return (
     <main className={styles.main}>
@@ -72,11 +71,12 @@ export default function Home() {
 
           <button
             className={styles.uploadButton}
+            disabled={disabled}
             onClick={async () => {
               if (!file) {
-                setDisabled(() => false);
                 return;
               }
+              setDisabled(() => true);
               const { url, thumbnailUrl } =
                 await edgestore.myPublicImages.upload({
                   file: file,
@@ -85,9 +85,7 @@ export default function Home() {
                   },
                 });
               setUrls({ url, thumbnailUrl });
-              setDisabled(() => true);
             }}
-            disabled={disabled}
           >
             upload
           </button>
