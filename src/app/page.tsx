@@ -80,20 +80,25 @@ export default function Home() {
           >
             upload
           </button>
+          <div
+            style={{
+              width: "100%",
+              border: "1px solid green",
+              borderRadius: 5,
+            }}
+          >
+            <div
+              style={{
+                width: `${progress}%`,
+                backgroundColor: "green",
+                height: 5,
+                transition: ".3s",
+              }}
+            />
+          </div>
         </div>
       </div>
-      {/* <div
-        style={{ width: "100%", border: "1px solid green", borderRadius: 5 }}
-      >
-        <div
-          style={{
-            width: `${progress}%`,
-            backgroundColor: "green",
-            height: 5,
-            transition: ".3s",
-          }}
-        />
-        </div> */}
+
       <URLsContent />
     </main>
   );
